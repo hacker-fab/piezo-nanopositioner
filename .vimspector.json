@@ -1,0 +1,22 @@
+{
+  "configurations": {
+    "<name>: Launch": {
+      "adapter": "vscode-cpptools",
+      "configuration": {
+        "name": "<name>",
+        "request": "launch",
+        "program": "${workspaceRoot}/build/MCU.elf",
+        "cwd": "${workspaceRoot}",
+        "MIDebuggerPath": "/Users/fox/.espressif/tools/xtensa-esp-elf-gdb/12.1_20221002/xtensa-esp-elf-gdb/bin/xtensa-esp32s3-elf-gdb",
+        "MIMode": "gdb",
+        "debugServerArgs": "-x gdbinit",
+				"miDebuggerServerAddress": "127.0.0.1:3333",
+        "stopAtEntry": true,
+        "modifiable": false,
+        "postRestartCommands": [
+          "monitor reset"
+        ]
+      }
+    }
+  }
+}
