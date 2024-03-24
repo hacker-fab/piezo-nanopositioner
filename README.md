@@ -1,1 +1,3 @@
 # piezo-nanopositioner
+
+To install the ESP-IDF you should follow this guide for [Linux and macOS](https://docs.espressif.com/projects/esp-idf/en/v5.2.1/esp32s3/get-started/linux-macos-setup.html) and [Windows](https://docs.espressif.com/projects/esp-idf/en/v5.2.1/esp32s3/get-started/windows-setup.html). Once you have the ESP-IDF installed you will need to run the `export.sh` file located in `esp/esp-idf/export.sh` inside the `esp` folder you setup. Once you have setup ESP-IDF for your current terminal session, you can now run `idf.py build` to compile the code or `idf.py -p {serial port the device is connected to} flash`. If you just want to flash a new board, you shouldn't need to recompile the code as the build folder should be already updated.
