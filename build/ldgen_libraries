@@ -62,4 +62,6 @@
 /Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/ulp/libulp.a
 /Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/usb/libusb.a
 /Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
+/Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/espressif__tinyusb/libespressif__tinyusb.a
+/Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/espressif__esp_tinyusb/libespressif__esp_tinyusb.a
 /Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/main/libmain.a

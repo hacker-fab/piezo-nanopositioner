@@ -1,8 +1,10 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
+#include "driver/uart.h"
 #include "esp_err.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/portmacro.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "hal/gpio_types.h"
@@ -12,7 +14,12 @@
 #include <sys/types.h>
 #include <string.h>
 #include <math.h>
+#include <string>
 #include "esp_timer.h"
+#include "hal/usb_phy_types.h"
+#include "tinyusb.h"
+#include "tusb_cdc_acm.h"
+#include "tusb_console.h"
 
 const gpio_num_t ENEABLE_24V_PIN = GPIO_NUM_8;
 const gpio_num_t DAC_SPI_MOSI = GPIO_NUM_6;
@@ -23,7 +30,13 @@ const gpio_num_t DAC_SPI_CS = GPIO_NUM_16;
 const int railCorrection = 12000;
 const int maxADCValue = pow(2, 16)-1-railCorrection;
 
+int g_itf;
+int driveFrequency = 1000;
+uint8_t transactionBuffer[CONFIG_TINYUSB_CDC_RX_BUFSIZE + 1] = {0};
+
 int isDriverOn = 0;
+int safeToRun = 1;
+int running = 0;
 spi_device_handle_t SPIDevice;
 
 enum DACRegister : uint8_t {
@@ -48,6 +61,12 @@ enum DACChannel : uint8_t {
 	DAC3 = 3,
 };
 
+enum USBOpCode : uint32_t {
+	ABORT = 'abrt',
+	RUN = 'runp',
+	SETCH = 'setc',
+	SETFREQ = 'setf',
+};
 
 void turnDriver(uint32_t on) {
 	gpio_set_level(ENEABLE_24V_PIN, on);
@@ -155,18 +174,14 @@ void readFromRegister(DACRegister address, uint16_t &value){
 	spi_device_release_bus(SPIDevice);
 }
 
-void addChannelToBroadcast(DACChannel channel) {
+void setChannelBroadcast(DACChannel channel, int broadcast) {
 	uint16_t registerValue = 0;
 	readFromRegister(DACRegister::SYNC, registerValue);
 
-	writeToRegister(DACRegister::SYNC, registerValue | (1 << (8+channel)));
-}
-
-void removeChannelFromBroadcast(DACChannel channel) {
-	uint16_t registerValue = 0;
-	readFromRegister(DACRegister::SYNC, registerValue);
-
-	writeToRegister(DACRegister::SYNC, registerValue & (1 << (8+channel)));
+	if(broadcast)
+		writeToRegister(DACRegister::SYNC, registerValue | (1 << (8+channel)));
+	else
+		writeToRegister(DACRegister::SYNC, registerValue & (1 << (8+channel)));
 }
 
 void broadcast(uint16_t value) {
@@ -183,7 +198,7 @@ long map(long x, long in_min, long in_max, long out_min, long out_max) {
 
 void stickSlip(int frequency, int direction) {
   long usPeriod = 1000000 / frequency;
-  long usStart = esp_timer_get_time();
+  uint64_t usStart = esp_timer_get_time();
 	uint64_t now = esp_timer_get_time();
 
 	fast_broadcast(direction ? 0 : maxADCValue);
@@ -191,6 +206,7 @@ void stickSlip(int frequency, int direction) {
   while (1) {
 		now = esp_timer_get_time();
 		if (now - usStart > usPeriod) break;
+		if (!safeToRun) return;
 
 		if (direction == 1) {
 			fast_broadcast((double)maxADCValue * pow((double)(now - usStart) / (double)usPeriod, 2));
@@ -203,17 +219,150 @@ void stickSlip(int frequency, int direction) {
 }
 
 void initiateDAC() {
-	removeChannelFromBroadcast(DACChannel::DAC0);
-	removeChannelFromBroadcast(DACChannel::DAC1);
-	removeChannelFromBroadcast(DACChannel::DAC2);
-	removeChannelFromBroadcast(DACChannel::DAC3);
-
-	addChannelToBroadcast(DACChannel::DAC0);
-	addChannelToBroadcast(DACChannel::DAC1);
-	addChannelToBroadcast(DACChannel::DAC2);
-	addChannelToBroadcast(DACChannel::DAC3);
+	setChannelBroadcast(DACChannel::DAC0, 0);
+	setChannelBroadcast(DACChannel::DAC1, 0);
+	setChannelBroadcast(DACChannel::DAC2, 0);
+	setChannelBroadcast(DACChannel::DAC3, 0);
 
 	writeToRegister(DACRegister::GAIN, 0b0000000100001111);
+}
+
+bool startsWithOpcode(int msgSize, USBOpCode opCode) {
+	if(msgSize<sizeof(opCode))
+		return 0;
+	
+	return memcmp(transactionBuffer, &opCode, sizeof(opCode)) == 0;
+}
+
+bool bufferContentIsBool(int i) {
+	if(transactionBuffer[i]<48 || transactionBuffer[i]>48+1) return 0;
+	
+	return 1;
+}
+
+bool bufferContentIsNumber(int i) {
+	if(transactionBuffer[i]<48 || transactionBuffer[i]>57) return 0;
+	
+	return 1;
+}
+
+void USBHandler(int msgSize) {
+	if(startsWithOpcode(msgSize, USBOpCode::ABORT)) {
+		safeToRun=0;
+		running=0;
+
+		tinyusb_cdcacm_write_queue((tinyusb_cdcacm_itf_t)g_itf, transactionBuffer, 4);
+		tinyusb_cdcacm_write_flush((tinyusb_cdcacm_itf_t)g_itf, 0);
+
+		return;
+	}
+
+	if(running) return;
+	safeToRun=1;
+
+	if(startsWithOpcode(msgSize, USBOpCode::SETCH)) {
+		if(msgSize<7) return;
+
+		for(int i=0; i<3; i++) {
+			if(!bufferContentIsBool(4+i)) return;
+		}
+
+		setChannelBroadcast(DACChannel::DAC0, transactionBuffer[4]-48);
+		setChannelBroadcast(DACChannel::DAC1, transactionBuffer[5]-48);
+		setChannelBroadcast(DACChannel::DAC2, transactionBuffer[6]-48);
+
+		tinyusb_cdcacm_write_queue((tinyusb_cdcacm_itf_t)g_itf, transactionBuffer, 4);
+		tinyusb_cdcacm_write_flush((tinyusb_cdcacm_itf_t)g_itf, 0);
+
+		return;
+	}
+
+	if(startsWithOpcode(msgSize, USBOpCode::SETFREQ)) {
+		if(msgSize<9) return;
+
+		for(int i=0; i<5; i++) {
+			if(!bufferContentIsNumber(4+i)) return;
+		}
+
+		std::string n(transactionBuffer+4, transactionBuffer+4+5);
+		driveFrequency = std::stoi(n);
+
+		tinyusb_cdcacm_write_queue((tinyusb_cdcacm_itf_t)g_itf, transactionBuffer, 4);
+		tinyusb_cdcacm_write_flush((tinyusb_cdcacm_itf_t)g_itf, 0);
+
+		return;
+	}
+
+	if(startsWithOpcode(msgSize, USBOpCode::RUN)) {
+		if(msgSize<6) return;
+
+		if(!bufferContentIsBool(4)) return;
+
+		for(int i=0; i<2; i++) {
+			if(!bufferContentIsNumber(4+i)) return;
+		}
+
+		running=1;
+
+		std::string n(transactionBuffer+4, transactionBuffer+4+2);
+		int usDuration = std::stoi(n) * 1000000;
+
+		spi_device_acquire_bus(SPIDevice, portMAX_DELAY);
+
+		uint64_t yieldTimer = esp_timer_get_time();
+		uint64_t usStart = esp_timer_get_time();
+		while(usStart - esp_timer_get_time() < usDuration) {
+			if (esp_timer_get_time() - yieldTimer > 10000000) {
+				vPortYield(); // yield
+				yieldTimer = esp_timer_get_time();
+			}
+
+			if(!safeToRun) {
+				safeToRun=1;
+				return;
+			}
+
+			stickSlip(driveFrequency, transactionBuffer[4]);
+		}
+		spi_device_release_bus(SPIDevice);
+
+		running=0;
+
+		tinyusb_cdcacm_write_queue((tinyusb_cdcacm_itf_t)g_itf, transactionBuffer, 4);
+		tinyusb_cdcacm_write_flush((tinyusb_cdcacm_itf_t)g_itf, 0);
+
+		return;
+	}
+
+}
+
+void tinyusb_cdc_rx_callback(int itf, cdcacm_event_t *event) {
+	size_t rx_size = 0;
+
+	tinyusb_cdcacm_read((tinyusb_cdcacm_itf_t)itf, transactionBuffer, CONFIG_TINYUSB_CDC_RX_BUFSIZE, &rx_size);
+	if(rx_size > 0){
+		g_itf = itf;
+		USBHandler(rx_size);
+	}
+}
+
+void initiateUSB() {
+		const tinyusb_config_t tusb_cfg = {
+		.device_descriptor = NULL,
+		.string_descriptor = NULL,
+		.external_phy = false,
+		.configuration_descriptor = NULL,
+	};
+
+	ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+
+	tinyusb_config_cdcacm_t acm_cfg;
+	memset(&acm_cfg, 0, sizeof(acm_cfg));
+	acm_cfg.callback_rx = &tinyusb_cdc_rx_callback;
+
+	ESP_ERROR_CHECK(tusb_cdc_acm_init(&acm_cfg));
+
+	esp_tusb_init_console(TINYUSB_CDC_ACM_0);
 }
 
 extern "C" void app_main(void) {
@@ -221,18 +370,6 @@ extern "C" void app_main(void) {
 	turnDriver(1);
 	
 	initiateSPI();
-
 	initiateDAC();
-
-  long yieldTimer = esp_timer_get_time();
-	spi_device_acquire_bus(SPIDevice, portMAX_DELAY);
-	while (1) {
-		if (esp_timer_get_time() - yieldTimer > 10000000) {
-			vTaskDelay(1); // yield
-			yieldTimer = esp_timer_get_time();
-		}
-
-		stickSlip(2000, 0);
-	}
-	spi_device_release_bus(SPIDevice);
+	initiateUSB();
 }
