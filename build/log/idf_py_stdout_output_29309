@@ -1,0 +1,62 @@
+[1/9] Performing build step for 'bootloader'
+[1/1] cd /Users/fox/hackerfab/nanopositioner/software/MCU/build/bootloader/esp-idf/esptool_py && /Users/fox/.espressif/python_env/idf5.1_py3.11_env/bin/python /Users/fox/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /Users/fox/hackerfab/nanopositioner/software/MCU/build/bootloader/bootloader.bin
+Bootloader binary size 0x51c0 bytes. 0x2e40 bytes (36%) free.
+[2/9] No install step for 'bootloader'
+[3/9] Completed 'bootloader'
+[4/9] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/MCU.cpp.obj
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp: In function 'void initiateSPI()':
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::<anonymous>' [-Wmissing-field-initializers]
+   61 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::<anonymous>' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::data4_io_num' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::data5_io_num' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::data6_io_num' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::data7_io_num' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::flags' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::isr_cpu_id' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:61:9: warning: missing initializer for member 'spi_bus_config_t::intr_flags' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:74:9: warning: missing initializer for member 'spi_device_interface_config_t::duty_cycle_pos' [-Wmissing-field-initializers]
+   74 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:74:9: warning: missing initializer for member 'spi_device_interface_config_t::input_delay_ns' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:74:9: warning: missing initializer for member 'spi_device_interface_config_t::flags' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:74:9: warning: missing initializer for member 'spi_device_interface_config_t::pre_cb' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:74:9: warning: missing initializer for member 'spi_device_interface_config_t::post_cb' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp: In function 'void writeToRegister(DACRegister, uint16_t)':
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:97:9: warning: missing initializer for member 'spi_transaction_t::flags' [-Wmissing-field-initializers]
+   97 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:97:9: warning: missing initializer for member 'spi_transaction_t::cmd' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:97:9: warning: missing initializer for member 'spi_transaction_t::addr' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:97:9: warning: missing initializer for member 'spi_transaction_t::rxlength' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:97:9: warning: missing initializer for member 'spi_transaction_t::user' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp: In function 'void readFromRegister(DACRegister, uint16_t&)':
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:119:9: warning: missing initializer for member 'spi_transaction_t::cmd' [-Wmissing-field-initializers]
+  119 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:119:9: warning: missing initializer for member 'spi_transaction_t::addr' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:119:9: warning: missing initializer for member 'spi_transaction_t::rxlength' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:119:9: warning: missing initializer for member 'spi_transaction_t::user' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:130:9: warning: missing initializer for member 'spi_transaction_t::cmd' [-Wmissing-field-initializers]
+  130 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:130:9: warning: missing initializer for member 'spi_transaction_t::addr' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:130:9: warning: missing initializer for member 'spi_transaction_t::rxlength' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:130:9: warning: missing initializer for member 'spi_transaction_t::user' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:141:9: warning: missing initializer for member 'spi_transaction_t::cmd' [-Wmissing-field-initializers]
+  141 |         };
+      |         ^
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:141:9: warning: missing initializer for member 'spi_transaction_t::addr' [-Wmissing-field-initializers]
+/Users/fox/hackerfab/nanopositioner/software/MCU/main/MCU.cpp:141:9: warning: missing initializer for member 'spi_transaction_t::user' [-Wmissing-field-initializers]
+[5/9] Linking C static library esp-idf/main/libmain.a
+[6/9] Generating ld/sections.ld
+[7/9] Linking CXX executable MCU.elf
+[8/9] Generating binary image from built executable
+esptool.py v4.7.dev3
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated /Users/fox/hackerfab/nanopositioner/software/MCU/build/MCU.bin
+[9/9] cd /Users/fox/hackerfab/nanopositioner/software/MCU/build/esp-idf/esptool_py && /Users/fox/.espressif/python_env/idf5.1_py3.11_env/bin/python /Users/fox/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /Users/fox/hackerfab/nanopositioner/software/MCU/build/partition_table/partition-table.bin /Users/fox/hackerfab/nanopositioner/software/MCU/build/MCU.bin
+MCU.bin binary size 0x38330 bytes. Smallest app partition is 0x100000 bytes. 0xc7cd0 bytes (78%) free.
