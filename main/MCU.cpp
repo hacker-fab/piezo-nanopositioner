@@ -62,10 +62,10 @@ enum DACChannel : uint8_t {
 };
 
 enum USBOpCode : uint32_t {
-	ABORT = 'abrt',
-	RUN = 'runp',
-	SETCH = 'setc',
-	SETFREQ = 'setf',
+	ABORT = 0x74726261, // abrt
+	RUN = 0x706E7572, // runp
+	SETCH = 0x63746573, // setc
+	SETFREQ = 0x66746573, // setf
 };
 
 void turnDriver(uint32_t on) {
@@ -283,7 +283,6 @@ void USBHandler(int msgSize) {
 		for(int i=0; i<5; i++) {
 			if(!bufferContentIsNumber(4+i)) return;
 		}
-
 		std::string n(transactionBuffer+4, transactionBuffer+4+5);
 		driveFrequency = std::stoi(n);
 
@@ -294,7 +293,7 @@ void USBHandler(int msgSize) {
 	}
 
 	if(startsWithOpcode(msgSize, USBOpCode::RUN)) {
-		if(msgSize<6) return;
+		if(msgSize<7) return;
 
 		if(!bufferContentIsBool(4)) return;
 
@@ -304,14 +303,14 @@ void USBHandler(int msgSize) {
 
 		running=1;
 
-		std::string n(transactionBuffer+4, transactionBuffer+4+2);
+		std::string n(transactionBuffer+5, transactionBuffer+5+2);
 		int usDuration = std::stoi(n) * 1000000;
 
 		spi_device_acquire_bus(SPIDevice, portMAX_DELAY);
 
 		uint64_t yieldTimer = esp_timer_get_time();
-		uint64_t usStart = esp_timer_get_time();
-		while(usStart - esp_timer_get_time() < usDuration) {
+		uint64_t usStart = yieldTimer;
+		while(esp_timer_get_time() - usStart < usDuration) {
 			if (esp_timer_get_time() - yieldTimer > 10000000) {
 				vPortYield(); // yield
 				yieldTimer = esp_timer_get_time();
@@ -322,7 +321,7 @@ void USBHandler(int msgSize) {
 				return;
 			}
 
-			stickSlip(driveFrequency, transactionBuffer[4]);
+			stickSlip(driveFrequency, transactionBuffer[4]-48);
 		}
 		spi_device_release_bus(SPIDevice);
 
@@ -342,6 +341,7 @@ void tinyusb_cdc_rx_callback(int itf, cdcacm_event_t *event) {
 	tinyusb_cdcacm_read((tinyusb_cdcacm_itf_t)itf, transactionBuffer, CONFIG_TINYUSB_CDC_RX_BUFSIZE, &rx_size);
 	if(rx_size > 0){
 		g_itf = itf;
+
 		USBHandler(rx_size);
 	}
 }
