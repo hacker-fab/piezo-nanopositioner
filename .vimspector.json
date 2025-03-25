@@ -7,7 +7,7 @@
         "request": "launch",
         "program": "${workspaceRoot}/build/MCU.elf",
         "cwd": "${workspaceRoot}",
-        "MIDebuggerPath": "/Users/fox/.espressif/tools/xtensa-esp-elf-gdb/12.1_20221002/xtensa-esp-elf-gdb/bin/xtensa-esp32s3-elf-gdb",
+        "MIDebuggerPath": "~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gdb",
         "MIMode": "gdb",
         "debugServerArgs": "-x gdbinit",
 				"miDebuggerServerAddress": "127.0.0.1:3333",

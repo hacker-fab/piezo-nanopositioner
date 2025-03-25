@@ -1,7 +1,7 @@
 {
     "version":            "1",
     "project_name":       "MCU",
-    "project_version":    "8d2fc3a-dirty",
+    "project_version":    "09ee354-dirty",
     "project_path":       "/Users/fox/hackerfab/nanopositioner/software/MCU",
     "idf_path":           "/Users/fox/esp/esp-idf",
     "build_dir":          "/Users/fox/hackerfab/nanopositioner/software/MCU/build",

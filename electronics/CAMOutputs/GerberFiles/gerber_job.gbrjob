@@ -1,0 +1,24 @@
+{
+    "Header": {
+        "Comment": "All values are metric (mm)",
+        "CreationDate": "2024-06-17T18:30:28Z",
+        "GenerationSoftware": {
+            "Application": "EAGLE",
+            "Vendor": "Autodesk",
+            "Version": "9.6.2"
+        },
+        "Part": "Single"
+    },
+    "Overall": {
+        "BoardThickness": 1.5642,
+        "LayerNumber": 4,
+        "Name": {
+            "ProjectId": "nanopositioner"
+        },
+        "Owner": "Rafael Fox <rsampaio@andrew.cmu.edu>",
+        "Size": {
+            "X": 90,
+            "Y": 40
+        }
+    }
+}
